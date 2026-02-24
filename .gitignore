@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Archivos de output generados por los ejemplos
+*.parquet
+*.csv
+*.xlsx
+*.gpkg
+*.geojson
+
+# Entornos virtuales
+.venv/
+venv/
+env/

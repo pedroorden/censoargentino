@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ciut-censo"
+version = "0.1.0"
+description = "Cliente Python para el censo argentino 2022 (INDEC / CIUT-REDATAM)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "duckdb>=0.10.0",
+    "pandas>=2.0",
+]
+
+[project.optional-dependencies]
+geo = [
+    "geopandas>=0.13",
+    "pyarrow>=12",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ciut*"]
