@@ -1,8 +1,8 @@
-S3_BASE = "https://arg-fulbright-data.s3.us-east-2.amazonaws.com/censo-argentino-2022"
+HF_BASE = "https://huggingface.co/datasets/pedroorden/censoargentino/resolve/main"
 
-METADATA_URL = f"{S3_BASE}/censo-2022-metadatos.parquet"
-DATA_URL = f"{S3_BASE}/censo-2022-largo.parquet"
-RADIOS_URL = f"{S3_BASE}/radios-2022.parquet"
+METADATA_URL = f"{HF_BASE}/censo-2022-metadatos.parquet"
+DATA_URL = f"{HF_BASE}/censo-2022-largo.parquet"
+RADIOS_URL = f"{HF_BASE}/radios-2022.parquet"
 
 # Códigos de provincia INDEC (2 dígitos)
 PROVINCIAS: dict[str, str] = {
