@@ -13,7 +13,7 @@ _RADIOS_SIZE_MB = 58
 
 
 def _log(msg: str) -> None:
-    print(f"[ciut] {msg}", flush=True)
+    print(f"[censo] {msg}", flush=True)
 
 
 class CensoClient:
@@ -26,14 +26,14 @@ class CensoClient:
         if self._con is None:
             import duckdb
 
-            _log("Iniciando DuckDB e instalando extensión HTTP...")
+            _log("Iniciando DuckDB e instalando extension HTTP...")
             self._con = duckdb.connect()
             self._con.execute("INSTALL httpfs; LOAD httpfs;")
             _log("Listo. Las consultas van directo a Hugging Face (pedroorden/censoargentino).")
         return self._con
 
     def _get_variable_label(self, codigo: str) -> str:
-        """Devuelve la etiqueta legible de una variable, ej. 'PERSONA_P02' -> 'Sexo registrado al nacer'."""
+        """Devuelve la etiqueta legible de una variable."""
         if not self._variable_labels_cache:
             df = self.variables()
             self._variable_labels_cache = dict(
@@ -50,14 +50,14 @@ class CensoClient:
         entidad : str, opcional
             Filtrar por entidad: "PERSONA", "HOGAR" o "VIVIENDA".
         buscar : str, opcional
-            Texto libre para buscar en el nombre o descripción de la variable.
+            Texto libre para buscar en el nombre o descripcion de la variable.
 
         Returns
         -------
         DataFrame con columnas: codigo_variable, etiqueta_variable, entidad
         """
         if self._metadata_cache is None:
-            _log("Descargando catálogo de variables (archivo de metadatos, ~1 MB)...")
+            _log("Descargando catalogo de variables (archivo de metadatos, ~1 MB)...")
             t0 = time.time()
             self._metadata_cache = self._conn().execute(
                 f"""
@@ -68,7 +68,7 @@ class CensoClient:
             ).df()
             elapsed = time.time() - t0
             n = len(self._metadata_cache)
-            _log(f"Catálogo cargado en {elapsed:.1f}s -> {n} variables disponibles")
+            _log(f"Catalogo cargado en {elapsed:.1f}s -> {n} variables disponibles")
             _log("  Entidades: PERSONA (personas), HOGAR (hogares), VIVIENDA (viviendas)")
 
         df = self._metadata_cache
@@ -84,12 +84,12 @@ class CensoClient:
 
     def describe(self, variable: str) -> None:
         """
-        Muestra la descripción completa de una variable: qué mide y sus categorías posibles.
+        Muestra la descripcion completa de una variable: que mide y sus categorias posibles.
 
         Parameters
         ----------
         variable : str
-            Código de la variable, ej. "PERSONA_SEXO".
+            Codigo de la variable, ej. "PERSONA_P02".
         """
         _log(f"Consultando metadatos de '{variable}'...")
         df = self._conn().execute(
@@ -109,7 +109,7 @@ class CensoClient:
 
         if df.empty:
             _log(f"Variable '{variable}' no encontrada.")
-            _log("Usá ciut.variables() para ver todas las disponibles.")
+            _log("Usa censo.variables() para ver todas las disponibles.")
             return
 
         row = df.iloc[0]
@@ -117,21 +117,21 @@ class CensoClient:
         entity_desc = entity_labels.get(row["entidad"], row["entidad"])
 
         print()
-        print(f"  Variable   : {row['codigo_variable']}")
+        print(f"  Variable    : {row['codigo_variable']}")
         print(f"  Nombre INDEC: {row['nombre_variable']}")
-        print(f"  Descripción: {row['etiqueta_variable']}")
-        print(f"  Entidad    : {row['entidad']}  (aplica a {entity_desc})")
-        print(f"  Referencia : https://redatam.indec.gob.ar/redarg/CENSOS/CPV2022/Docs/Redatam_Definiciones_de_la_base_de_datos.pdf")
+        print(f"  Descripcion : {row['etiqueta_variable']}")
+        print(f"  Entidad     : {row['entidad']}  (aplica a {entity_desc})")
+        print(f"  Referencia  : https://redatam.indec.gob.ar/redarg/CENSOS/CPV2022/Docs/Redatam_Definiciones_de_la_base_de_datos.pdf")
         print()
-        print(f"  Categorías ({len(df)} valores):")
-        print(f"  {'Código':<10}  Etiqueta")
+        print(f"  Categorias ({len(df)} valores):")
+        print(f"  {'Codigo':<10}  Etiqueta")
         print(f"  {'-'*8}  {'-'*40}")
         for _, r in df.iterrows():
             print(f"  {str(r['valor_categoria']):<10}  {r['etiqueta_categoria']}")
         print()
 
     def provincias(self) -> pd.DataFrame:
-        """Devuelve la tabla de provincias con nombre y código INDEC."""
+        """Devuelve la tabla de provincias con nombre y codigo INDEC."""
         seen: dict[str, str] = {}
         for nombre, codigo in PROVINCIAS.items():
             if codigo not in seen:
@@ -152,15 +152,15 @@ class CensoClient:
         Parameters
         ----------
         variables : str o lista de str
-            Código/s de variable del censo (ej. "PERSONA_SEXO").
-            Usá ciut.variables() para ver todos los disponibles.
+            Codigo/s de variable del censo (ej. "PERSONA_P02").
+            Usa censo.variables() para ver todos los disponibles.
         provincia : str
-            Nombre o código INDEC de la provincia (ej. "Córdoba" o "14").
+            Nombre o codigo INDEC de la provincia (ej. "Cordoba" o "14").
         departamento : str
-            Código INDEC del departamento (3 dígitos, ej. "007").
+            Codigo INDEC del departamento (3 digitos, ej. "007").
         geometry : bool
-            Si True devuelve un GeoDataFrame con polígonos de radios censales.
-            Requiere: pip install ciut-censo[geo]
+            Si True devuelve un GeoDataFrame con poligonos de radios censales.
+            Requiere: pip install censoargentino[geo]
 
         Returns
         -------
@@ -168,8 +168,8 @@ class CensoClient:
         """
         if variables is None and provincia is None and departamento is None:
             raise ValueError(
-                "Especificá al menos un filtro (variables, provincia o departamento) "
-                "para no intentar descargar el dataset completo (~2 GB)."
+                "Especifica al menos un filtro (variables, provincia o departamento) "
+                "para no intentar descargar el dataset completo (~137 MB)."
             )
 
         if isinstance(variables, str):
@@ -200,14 +200,13 @@ class CensoClient:
                 _log(f"  Variable : {v}{suffix}")
 
         if prov_label:
-            _log(f"  Provincia: {prov_label}  (código INDEC: {prov_code})")
+            _log(f"  Provincia: {prov_label}  (codigo INDEC: {prov_code})")
         if dpto_code:
             _log(f"  Dpto.    : {dpto_code}")
 
-        # Explicar qué es el formato largo
         _log("-" * 55)
         _log("Estructura del resultado:")
-        _log("  Cada fila = una (radio censal × categoría de variable × conteo)")
+        _log("  Cada fila = una (radio censal x categoria de variable x conteo)")
         _log("  Columnas clave: id_geo | codigo_variable | valor_categoria")
         _log("                  etiqueta_categoria | conteo")
         _log("=" * 55)
@@ -240,14 +239,111 @@ class CensoClient:
 
         return self._attach_geometry(df, prov_code)
 
+    def tabla(
+        self,
+        variable: str,
+        provincia: str | None = None,
+        departamento: str | None = None,
+    ) -> pd.DataFrame:
+        """
+        Descarga y resume una variable en una tabla con N y porcentaje.
+
+        Equivale a query() + agregar() en un solo paso.
+
+        Parameters
+        ----------
+        variable : str
+            Codigo de variable del censo (ej. "PERSONA_P02").
+        provincia : str, opcional
+            Nombre o codigo INDEC de la provincia.
+        departamento : str, opcional
+            Codigo INDEC del departamento (3 digitos).
+
+        Returns
+        -------
+        pandas.DataFrame con columnas: categoria, N, %
+
+        Ejemplos
+        --------
+        >>> censo.tabla("PERSONA_P02")
+        >>> censo.tabla("HOGAR_NBI_TOT", provincia="Tucuman")
+        >>> censo.tabla("PERSONA_MNI", provincia="14", departamento="007")
+        """
+        from ._analysis import agregar
+
+        df = self.query(variables=variable, provincia=provincia, departamento=departamento)
+        return agregar(df)
+
+    def comparar(
+        self,
+        variable: str,
+        nivel: str = "provincia",
+        provincia: str | None = None,
+    ) -> pd.DataFrame:
+        """
+        Compara la distribucion de una variable entre provincias o departamentos.
+
+        Devuelve una tabla pivot: geografia en filas, categorias en columnas, % como valores.
+
+        Parameters
+        ----------
+        variable : str
+            Codigo de variable del censo (ej. "HOGAR_NBI_TOT").
+        nivel : str, default "provincia"
+            Nivel geografico de comparacion: "provincia" o "departamento".
+        provincia : str, opcional
+            Requerido cuando nivel="departamento". Filtra por provincia.
+
+        Returns
+        -------
+        pandas.DataFrame con geografia como indice, categorias como columnas y
+        una columna "Total" con el N total de cada unidad geografica.
+
+        Ejemplos
+        --------
+        >>> censo.comparar("HOGAR_NBI_TOT")
+        >>> censo.comparar("PERSONA_MNI", nivel="departamento", provincia="Cordoba")
+        >>> censo.comparar("VIVIENDA_TIPOVIVG")
+        """
+        from ._analysis import agregar
+
+        if nivel not in ("provincia", "departamento"):
+            raise ValueError(
+                f"'nivel' debe ser 'provincia' o 'departamento'. Recibido: '{nivel}'"
+            )
+
+        if nivel == "departamento" and provincia is None:
+            _log("Advertencia: comparando departamentos de todo el pais (puede tardar).")
+
+        df = self.query(variables=variable, provincia=provincia)
+        agg = agregar(df, por=nivel)
+
+        geo_col = agg.columns[0]  # primera columna = etiqueta geografica
+
+        # Pivot: geografia x categorias, valores = %
+        pivot = agg.pivot_table(
+            index=geo_col, columns="categoria", values="%", aggfunc="first"
+        )
+        pivot.columns.name = None
+        pivot.index.name = None
+
+        # Columna Total con N
+        total_n = agg.groupby(geo_col)["N"].sum().rename("Total")
+        pivot = pivot.join(total_n)
+
+        # Ordenar por Total descendente
+        pivot = pivot.sort_values("Total", ascending=False)
+
+        return pivot
+
     def _attach_geometry(self, df: pd.DataFrame, prov_code: str | None):
-        """Une el DataFrame con los polígonos de radios censales."""
+        """Une el DataFrame con los poligonos de radios censales."""
         try:
             import geopandas as gpd
         except ImportError as e:
             raise ImportError(
                 "geopandas es necesario para geometry=True. "
-                "Instalalo con: pip install ciut-censo[geo]"
+                "Instalalo con: pip install censoargentino[geo]"
             ) from e
 
         radios_conditions: list[str] = []
@@ -258,7 +354,7 @@ class CensoClient:
             f"WHERE {' AND '.join(radios_conditions)}" if radios_conditions else ""
         )
 
-        _log(f"Descargando polígonos de radios censales (~{_RADIOS_SIZE_MB} MB total)...")
+        _log(f"Descargando poligonos de radios censales (~{_RADIOS_SIZE_MB} MB total)...")
         t0 = time.time()
         radios = self._conn().execute(
             f"SELECT cod_2022, geometry FROM '{RADIOS_URL}' {radios_where}"
@@ -266,7 +362,7 @@ class CensoClient:
         elapsed = time.time() - t0
         _log(f"Radios descargados en {elapsed:.1f}s -> {len(radios):,} radios censales")
 
-        _log("Uniendo datos censales con geometrías...")
+        _log("Uniendo datos censales con geometrias...")
         merged = df.merge(radios, left_on="id_geo", right_on="cod_2022", how="left")
         matched = merged["geometry"].notna().sum()
         merged["geometry"] = gpd.GeoSeries.from_wkb(merged["geometry"])
