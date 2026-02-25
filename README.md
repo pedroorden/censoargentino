@@ -1,4 +1,4 @@
-# ciut-censo
+# censoargentino
 
 Cliente Python para consultar el **Censo Nacional de Población, Hogares y Viviendas 2022** de Argentina (INDEC).
 
@@ -7,39 +7,42 @@ Usa [DuckDB](https://duckdb.org/) para hacer consultas directas sobre los archiv
 ## Instalación
 
 ```bash
-# Básico
-pip install git+https://github.com/pedroorden/censoargentino.git
+# Desde PyPI
+pip install censoargentino
 
 # Con soporte de mapas (geopandas)
-pip install "ciut-censo[geo] @ git+https://github.com/pedroorden/censoargentino.git"
+pip install "censoargentino[geo]"
+
+# Desde GitHub (última versión)
+pip install git+https://github.com/pedroorden/censoargentino.git
 ```
 
 ## Uso rápido
 
 ```python
-import ciut
+import censoargentino as censo
 
 # Ver variables disponibles
-ciut.variables()
-ciut.variables(entidad="PERSONA")
-ciut.variables(buscar="edad")
+censo.variables()
+censo.variables(entidad="PERSONA")
+censo.variables(buscar="edad")
 
 # Entender una variable
-ciut.describe("PERSONA_P02")      # Sexo
-ciut.describe("PERSONA_EDADQUI")  # Edad quinquenal
-ciut.describe("HOGAR_NBI_TOT")    # NBI
+censo.describe("PERSONA_P02")      # Sexo
+censo.describe("PERSONA_EDADQUI")  # Edad quinquenal
+censo.describe("HOGAR_NBI_TOT")    # NBI
 
 # Consultar datos (solo baja lo que filtrás)
-df = ciut.query(variables="PERSONA_P02", provincia="Córdoba")
-df = ciut.query(variables=["PERSONA_P02", "PERSONA_EDADGRU"], provincia="02")  # CABA
+df = censo.query(variables="PERSONA_P02", provincia="Córdoba")
+df = censo.query(variables=["PERSONA_P02", "PERSONA_EDADGRU"], provincia="02")  # CABA
 
 # Con polígonos de radios censales
-gdf = ciut.query(variables="PERSONA_EDADGRU", provincia="Mendoza", geometry=True)
+gdf = censo.query(variables="PERSONA_EDADGRU", provincia="Mendoza", geometry=True)
 ```
 
 ## Datos disponibles
 
-Los archivos están en un bucket público de AWS S3:
+Los archivos están en [Hugging Face](https://huggingface.co/datasets/pedroorden/censoargentino):
 
 | Archivo | Tamaño | Contenido |
 |---|---|---|
@@ -79,12 +82,12 @@ id_geo     | codigo_variable | valor_categoria | etiqueta_categoria   | conteo
 
 | Función | Descripción |
 |---|---|
-| `ciut.variables()` | Lista todas las variables del censo |
-| `ciut.variables(entidad="PERSONA")` | Filtra por entidad |
-| `ciut.variables(buscar="texto")` | Busca por palabra clave |
-| `ciut.describe("VARIABLE")` | Muestra categorías de una variable |
-| `ciut.provincias()` | Tabla de provincias con códigos INDEC |
-| `ciut.query(variables, provincia, departamento, geometry)` | Consulta datos |
+| `censo.variables()` | Lista todas las variables del censo |
+| `censo.variables(entidad="PERSONA")` | Filtra por entidad |
+| `censo.variables(buscar="texto")` | Busca por palabra clave |
+| `censo.describe("VARIABLE")` | Muestra categorías de una variable |
+| `censo.provincias()` | Tabla de provincias con códigos INDEC |
+| `censo.query(variables, provincia, departamento, geometry)` | Consulta datos |
 
 ## Documentación INDEC
 

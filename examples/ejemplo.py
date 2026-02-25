@@ -1,18 +1,18 @@
 """
-Ejemplos de uso de ciut-censo.
+Ejemplos de uso de censoargentino.
 
-Instalación:
-    pip install -e ciut-censo/           # dependencias básicas
-    pip install -e "ciut-censo/[geo]"    # + geopandas para geometría
+Instalacion:
+    pip install censoargentino           # dependencias basicas
+    pip install "censoargentino[geo]"    # + geopandas para geometria
 """
 
-import ciut
+import censoargentino as censo
 
 # ------------------------------------------------------------------
 # 1. Ver variables disponibles (trae solo el archivo de metadatos, chico)
 # ------------------------------------------------------------------
 print("=== Variables disponibles ===")
-vars_df = ciut.variables()
+vars_df = censo.variables()
 print(vars_df.head(10))
 print(f"\nTotal variables: {len(vars_df)}")
 
@@ -20,40 +20,46 @@ print(f"\nTotal variables: {len(vars_df)}")
 # 2. Ver provincias (lookup local, sin red)
 # ------------------------------------------------------------------
 print("\n=== Provincias ===")
-print(ciut.provincias())
+print(censo.provincias())
 
 # ------------------------------------------------------------------
-# 3. Consulta básica: una variable, todo el país
+# 3. Entender una variable
 # ------------------------------------------------------------------
-print("\n=== PERSONA_SEXO (todo el país) ===")
-df_sexo = ciut.query(variables="PERSONA_SEXO")
+censo.describe("PERSONA_P02")     # Sexo
+censo.describe("PERSONA_EDADQUI") # Edad quinquenal
+
+# ------------------------------------------------------------------
+# 4. Consulta basica: una variable, todo el pais
+# ------------------------------------------------------------------
+print("\n=== PERSONA_P02 - Sexo (todo el pais) ===")
+df_sexo = censo.query(variables="PERSONA_P02")
 print(df_sexo.head())
 
 # ------------------------------------------------------------------
-# 4. Consulta filtrada por provincia (solo descarga esa provincia)
+# 5. Consulta filtrada por provincia (solo descarga esa provincia)
 # ------------------------------------------------------------------
-print("\n=== PERSONA_SEXO en CABA ===")
-df_caba = ciut.query(variables="PERSONA_SEXO", provincia="02")
+print("\n=== PERSONA_P02 en CABA ===")
+df_caba = censo.query(variables="PERSONA_P02", provincia="02")
 print(df_caba)
 
 # ------------------------------------------------------------------
-# 5. Varias variables + provincia por nombre
+# 6. Varias variables + provincia por nombre
 # ------------------------------------------------------------------
-print("\n=== Tipo de vivienda y condición de habitabilidad en Córdoba ===")
-df_cordoba = ciut.query(
-    variables=["VIVIENDA_TIPOVIVG", "VIVIENDA_CONDICION_HABITABILIDAD"],
-    provincia="Córdoba",
+print("\n=== Tipo de vivienda en Cordoba ===")
+df_cordoba = censo.query(
+    variables=["VIVIENDA_TIPOVIVG", "VIVIENDA_URP"],
+    provincia="Cordoba",
 )
 print(df_cordoba.head(20))
 
 # ------------------------------------------------------------------
-# 6. Con geometría (requiere pip install ciut-censo[geo])
+# 7. Con geometria (requiere pip install censoargentino[geo])
 # ------------------------------------------------------------------
-print("\n=== PERSONA_SEXO en Mendoza con polígonos de radios censales ===")
+print("\n=== PERSONA_P02 en Mendoza con poligonos de radios censales ===")
 try:
-    gdf = ciut.query(variables="PERSONA_SEXO", provincia="Mendoza", geometry=True)
+    gdf = censo.query(variables="PERSONA_P02", provincia="Mendoza", geometry=True)
     print(gdf.head())
     print(f"\nCRS: {gdf.crs}")
-    print(f"Filas con geometría: {gdf.geometry.notna().sum()}")
+    print(f"Filas con geometria: {gdf.geometry.notna().sum()}")
 except ImportError as e:
-    print(f"Instalá geopandas para este ejemplo: pip install ciut-censo[geo]\n{e}")
+    print(f"Instala geopandas para este ejemplo: pip install censoargentino[geo]\n{e}")

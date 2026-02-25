@@ -3,16 +3,30 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ciut-censo"
+name = "censoargentino"
 version = "0.1.0"
-description = "Cliente Python para el censo argentino 2022 (INDEC / CIUT-REDATAM)"
+description = "Cliente Python para el censo argentino 2022 (INDEC)"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
+authors = [
+    { name = "pedroorden" },
+]
+keywords = ["censo", "argentina", "indec", "duckdb", "datos abiertos"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
 dependencies = [
     "duckdb>=0.10.0",
     "pandas>=2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/pedroorden/censoargentino"
+Repository = "https://github.com/pedroorden/censoargentino"
 
 [project.optional-dependencies]
 geo = [
@@ -22,4 +36,4 @@ geo = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["ciut*"]
+include = ["censoargentino*"]
