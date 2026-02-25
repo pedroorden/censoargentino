@@ -2,7 +2,7 @@
 
 Cliente Python para consultar el **Censo Nacional de Población, Hogares y Viviendas 2022** de Argentina (INDEC).
 
-Usa [DuckDB](https://duckdb.org/) para hacer consultas directas sobre los archivos Parquet almacenados en S3, descargando solo los datos que necesitás sin bajar el dataset completo.
+Usa [DuckDB](https://duckdb.org/) para hacer consultas directas sobre los archivos Parquet almacenados en [Hugging Face](https://huggingface.co/datasets/pedroorden/censoargentino), descargando solo los datos que necesitás sin bajar el dataset completo.
 
 ## Instalación
 
