@@ -7,9 +7,9 @@ import pandas as pd
 from ._constants import DATA_URL, METADATA_URL, PROVINCIAS, RADIOS_URL
 from ._geo import resolve_provincia
 
-# Tamaño aproximado del archivo completo en S3 (para contexto al usuario)
-_DATA_SIZE_GB = 2.1
-_RADIOS_SIZE_MB = 180
+# Tamaño aproximado de los archivos en Hugging Face (comprimidos con ZSTD)
+_DATA_SIZE_MB = 137
+_RADIOS_SIZE_MB = 58
 
 
 def _log(msg: str) -> None:
@@ -29,7 +29,7 @@ class CensoClient:
             _log("Iniciando DuckDB e instalando extensión HTTP...")
             self._con = duckdb.connect()
             self._con.execute("INSTALL httpfs; LOAD httpfs;")
-            _log("Listo. Las consultas se hacen directo al bucket S3 de INDEC/CIUT.")
+            _log("Listo. Las consultas van directo a Hugging Face (pedroorden/censoargentino).")
         return self._con
 
     def _get_variable_label(self, codigo: str) -> str:
@@ -189,7 +189,7 @@ class CensoClient:
         # --- Mostrar resumen de la consulta ---
         _log("=" * 55)
         _log("Consulta al Censo Nacional 2022 (INDEC)")
-        _log(f"Fuente: censo-2022-largo.parquet (~{_DATA_SIZE_GB} GB total en S3)")
+        _log(f"Fuente: censo-2022-largo.parquet (~{_DATA_SIZE_MB} MB en Hugging Face)")
         _log("  (DuckDB descarga solo los bloques que coinciden con los filtros)")
         _log("-" * 55)
 
@@ -224,7 +224,7 @@ class CensoClient:
 
         where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
-        _log("Descargando datos desde S3...")
+        _log("Descargando datos desde Hugging Face...")
         t0 = time.time()
         df = self._conn().execute(f"SELECT * FROM '{DATA_URL}' {where}").df()
         elapsed = time.time() - t0
