@@ -1,66 +1,129 @@
 # censoargentino
 
+[![PyPI version](https://img.shields.io/pypi/v/censoargentino)](https://pypi.org/project/censoargentino/)
+[![Python](https://img.shields.io/pypi/pyversions/censoargentino)](https://pypi.org/project/censoargentino/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Cliente Python para consultar el **Censo Nacional de Población, Hogares y Viviendas 2022** de Argentina (INDEC).
 
-Usa [DuckDB](https://duckdb.org/) para hacer consultas directas sobre los archivos Parquet almacenados en [Hugging Face](https://huggingface.co/datasets/pedroorden/censoargentino), descargando solo los datos que necesitás sin bajar el dataset completo.
+Usa [DuckDB](https://duckdb.org/) para hacer consultas directas sobre archivos Parquet remotos, descargando **solo los datos que necesitás** sin bajar el dataset completo (~137 MB).
+
+---
 
 ## Instalación
 
 ```bash
-# Desde PyPI
 pip install censoargentino
 
 # Con soporte de mapas (geopandas)
 pip install "censoargentino[geo]"
-
-# Desde GitHub (última versión)
-pip install git+https://github.com/pedroorden/censoargentino.git
 ```
+
+---
 
 ## Uso rápido
 
 ```python
 import censoargentino as censo
 
-# Ver variables disponibles
-censo.variables()
-censo.variables(entidad="PERSONA")
-censo.variables(buscar="edad")
+# Tabla resumida con N y % — una sola línea
+censo.tabla("PERSONA_P02")
+#           categoria         N     %
+# Mujer / Femenino     23607906  51.8
+# Varón / Masculino    22010881  48.2
 
-# Entender una variable
-censo.describe("PERSONA_P02")      # Sexo
-censo.describe("PERSONA_EDADQUI")  # Edad quinquenal
-censo.describe("HOGAR_NBI_TOT")    # NBI
+# Filtrado por provincia
+censo.tabla("HOGAR_NBI_TOT", provincia="Chaco")
 
-# Consultar datos (solo baja lo que filtrás)
+# Comparación entre provincias
+censo.comparar("HOGAR_NBI_TOT")
+#               Con NBI  Sin NBI    Total
+# Formosa          26.0     74.0   173500
+# Chaco            24.9     75.1   393500
+# ...
+
+# Datos crudos (formato largo por radio censal)
 df = censo.query(variables="PERSONA_P02", provincia="Córdoba")
-df = censo.query(variables=["PERSONA_P02", "PERSONA_EDADGRU"], provincia="02")  # CABA
 
 # Con polígonos de radios censales
 gdf = censo.query(variables="PERSONA_EDADGRU", provincia="Mendoza", geometry=True)
 ```
 
-## Datos disponibles
+---
 
-Los archivos están en [Hugging Face](https://huggingface.co/datasets/pedroorden/censoargentino):
+## ¿De dónde vienen los datos?
+
+Los datos corresponden a la **1ª entrega definitiva del CPV 2022** (publicada por INDEC en diciembre de 2024).
+
+**Pipeline de procesamiento:**
+
+```
+INDEC (base REDATAM .rxdb)
+        ↓
+  redatamx (R)  →  extracción de variables
+        ↓
+  formato largo Parquet  →  censo-2022-largo.parquet
+  metadatos Parquet      →  censo-2022-metadatos.parquet
+  radios censales        →  radios-2022.parquet  (fuente: CONICET)
+        ↓
+  Hugging Face Datasets  →  pedroorden/censoargentino
+        ↓
+  censoargentino (este paquete)  →  consultas eficientes vía DuckDB
+```
 
 | Archivo | Tamaño | Contenido |
 |---|---|---|
-| `censo-2022-largo.parquet` | 137 MB | Datos del censo en formato largo |
-| `radios-2022.parquet` | 58 MB | Polígonos de radios censales |
+| `censo-2022-largo.parquet` | 137 MB | Variables × radios censales × conteos |
+| `radios-2022.parquet` | 58 MB | Polígonos geográficos (WKB, EPSG:4326) |
 | `censo-2022-metadatos.parquet` | 1 MB | Catálogo de variables y categorías |
 
-Fuente: [INDEC](https://www.indec.gob.ar/indec/web/Institucional-Indec-BasesDeDatos-6) · Procesado con [redatamx](https://ideasybits.github.io/redatamx4r/index.html)
+**Cobertura:** Vivienda · Hogar · Persona — desagregación hasta radio censal.
+
+> La 2ª entrega (localidades y aglomerados) está prometida por INDEC sin fecha confirmada.
+
+---
 
 ## Estructura del resultado
 
-Los datos vienen en **formato largo pre-agregado**: cada fila es una combinación de *(radio censal × categoría × conteo)*.
+`query()` devuelve **formato largo pre-agregado**: cada fila es una combinación de *(radio censal × categoría × conteo)*.
 
 ```
-id_geo     | codigo_variable | valor_categoria | etiqueta_categoria   | conteo
-460070101  | PERSONA_P02     | 1               | Mujer / Femenino     | 252
-460070101  | PERSONA_P02     | 2               | Varón / Masculino    | 231
+id_geo     | codigo_variable | valor_categoria | etiqueta_categoria   | conteo | etiqueta_provincia | ...
+460070101  | PERSONA_P02     | 1               | Mujer / Femenino     |    252 | La Rioja           | ...
+460070101  | PERSONA_P02     | 2               | Varón / Masculino    |    231 | La Rioja           | ...
 ```
+
+`tabla()` y `comparar()` hacen la agregación por vos.
+
+---
+
+## Referencia de la API
+
+### Descubrimiento
+
+| Función | Descripción |
+|---|---|
+| `censo.variables()` | Lista todas las variables del censo |
+| `censo.variables(entidad="PERSONA")` | Filtra por entidad (`PERSONA`, `HOGAR`, `VIVIENDA`) |
+| `censo.variables(buscar="texto")` | Busca por palabra clave en código o descripción |
+| `censo.describe("VARIABLE")` | Muestra qué mide una variable y sus categorías |
+| `censo.provincias()` | Tabla de provincias con códigos INDEC |
+
+### Análisis
+
+| Función | Descripción |
+|---|---|
+| `censo.tabla(variable, provincia, departamento)` | Tabla con N y % en un paso |
+| `censo.comparar(variable, nivel, provincia)` | Pivot geográfico (provincia o departamento) |
+| `censo.agregar(df, por)` | Agrega un DataFrame de `query()` con N y % |
+
+### Datos crudos
+
+| Función | Descripción |
+|---|---|
+| `censo.query(variables, provincia, departamento, geometry)` | Datos en formato largo por radio censal |
+
+---
 
 ## Variables principales
 
@@ -73,24 +136,47 @@ id_geo     | codigo_variable | valor_categoria | etiqueta_categoria   | conteo
 | `PERSONA_MNI` | Máximo nivel de instrucción |
 | `PERSONA_CONDACT` | Condición de actividad económica |
 | `HOGAR_NBI_TOT` | Necesidades Básicas Insatisfechas |
+| `HOGAR_NBI_VIV / ESC / SAN / HAC / SUB` | Componentes del NBI |
+| `HOGAR_IPMH` | Índice de Privación Material del Hogar |
 | `HOGAR_H24A/B/C` | Acceso a internet, celular, computadora |
 | `VIVIENDA_TIPOVIVG` | Tipo de vivienda |
 | `VIVIENDA_URP` | Área urbano/rural |
 | `DPTO_NDPTO` | Nombres de departamentos |
 
-## Referencia de la API
+Explorá el catálogo completo con `censo.variables()`.
 
-| Función | Descripción |
-|---|---|
-| `censo.variables()` | Lista todas las variables del censo |
-| `censo.variables(entidad="PERSONA")` | Filtra por entidad |
-| `censo.variables(buscar="texto")` | Busca por palabra clave |
-| `censo.describe("VARIABLE")` | Muestra categorías de una variable |
-| `censo.provincias()` | Tabla de provincias con códigos INDEC |
-| `censo.query(variables, provincia, departamento, geometry)` | Consulta datos |
+---
 
-## Documentación INDEC
+## Ejemplos de análisis
 
+```python
+import censoargentino as censo
+
+# NBI por provincia — tabla comparativa
+censo.comparar("HOGAR_NBI_TOT")
+
+# Nivel educativo en departamentos de Tucumán
+censo.comparar("PERSONA_MNI", nivel="departamento", provincia="Tucumán")
+
+# Distribución de sexo en CABA
+censo.tabla("PERSONA_P02", provincia="02")
+
+# Datos crudos + agregación manual
+df = censo.query(variables="PERSONA_MNI", provincia="Santa Fe")
+censo.agregar(df, por="departamento")
+
+# Mapa de NBI en Buenos Aires
+gdf = censo.query(variables="HOGAR_NBI_TOT", provincia="Buenos Aires", geometry=True)
+gdf.plot(column="conteo", cmap="YlOrRd")
+```
+
+---
+
+## Fuentes y documentación
+
+- [Dataset en Hugging Face](https://huggingface.co/datasets/pedroorden/censoargentino)
+- [Base REDATAM — INDEC](https://www.indec.gob.ar/indec/web/Institucional-Indec-BasesDeDatos-6)
 - [Definiciones de variables (PDF)](https://redatam.indec.gob.ar/redarg/CENSOS/CPV2022/Docs/Redatam_Definiciones_de_la_base_de_datos.pdf)
-- [Cuestionario del censo (PDF)](https://www.indec.gob.ar/ftp/cuadros/poblacion/Censo2022_cuestionario_viviendas_particulares.pdf)
+- [Radios censales — CONICET](https://ri.conicet.gov.ar/handle/11336/149711)
+- [redatamx — herramienta de procesamiento](https://ideasybits.github.io/redatamx4r/index.html)
 - [Portal REDATAM online](https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP)
