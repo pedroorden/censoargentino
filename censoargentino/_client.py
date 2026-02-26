@@ -274,6 +274,23 @@ class CensoClient:
         df = self.query(variables=variable, provincia=provincia, departamento=departamento)
         return agregar(df)
 
+    def _dept_labels(self, prov_code: str | None = None) -> dict[str, str]:
+        """
+        Devuelve un diccionario {etiqueta_departamento_codigo: nombre_real}
+        consultando la variable DPTO_NDPTO del propio dataset.
+        """
+        conditions = ["codigo_variable = 'DPTO_NDPTO'"]
+        if prov_code:
+            conditions.append(f"valor_provincia = '{prov_code}'")
+        where = "WHERE " + " AND ".join(conditions)
+
+        result = self._conn().execute(
+            f"SELECT DISTINCT etiqueta_departamento, etiqueta_categoria "
+            f"FROM '{DATA_URL}' {where}"
+        ).df()
+
+        return dict(zip(result["etiqueta_departamento"], result["etiqueta_categoria"]))
+
     def comparar(
         self,
         variable: str,
@@ -284,6 +301,8 @@ class CensoClient:
         Compara la distribucion de una variable entre provincias o departamentos.
 
         Devuelve una tabla pivot: geografia en filas, categorias en columnas, % como valores.
+        Cuando nivel="departamento", los nombres reales de departamento se resuelven
+        automaticamente a partir de la variable DPTO_NDPTO.
 
         Parameters
         ----------
@@ -319,6 +338,12 @@ class CensoClient:
         agg = agregar(df, por=nivel)
 
         geo_col = agg.columns[0]  # primera columna = etiqueta geografica
+
+        # Resolver nombres reales de departamento
+        if nivel == "departamento":
+            prov_code = resolve_provincia(provincia) if provincia else None
+            labels = self._dept_labels(prov_code)
+            agg[geo_col] = agg[geo_col].map(lambda x: labels.get(x, x))
 
         # Pivot: geografia x categorias, valores = %
         pivot = agg.pivot_table(
