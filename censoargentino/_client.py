@@ -13,7 +13,10 @@ _RADIOS_SIZE_MB = 58
 
 
 def _log(msg: str) -> None:
-    print(f"[censo] {msg}", flush=True)
+    import sys
+    enc = sys.stdout.encoding or "utf-8"
+    safe = msg.encode(enc, errors="replace").decode(enc)
+    print(f"[censo] {safe}", flush=True)
 
 
 class CensoClient:
@@ -28,7 +31,7 @@ class CensoClient:
 
             _log("Iniciando DuckDB e instalando extension HTTP...")
             self._con = duckdb.connect()
-            self._con.execute("INSTALL httpfs; LOAD httpfs;")
+            self._con.execute("INSTALL httpfs; LOAD httpfs; SET enable_progress_bar = false;")
             _log("Listo. Las consultas van directo a Hugging Face (pedroorden/censoargentino).")
         return self._con
 
