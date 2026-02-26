@@ -14,9 +14,6 @@ Usa [DuckDB](https://duckdb.org/) para hacer consultas directas sobre archivos P
 
 ```bash
 pip install censoargentino
-
-# Con soporte de mapas (geopandas)
-pip install "censoargentino[geo]"
 ```
 
 ---
@@ -44,9 +41,6 @@ censo.comparar("HOGAR_NBI_TOT")
 
 # Datos crudos (formato largo por radio censal)
 df = censo.query(variables="PERSONA_P02", provincia="Córdoba")
-
-# Con polígonos de radios censales
-gdf = censo.query(variables="PERSONA_EDADGRU", provincia="Mendoza", geometry=True)
 ```
 
 ---
@@ -74,7 +68,6 @@ INDEC (base REDATAM .rxdb)
 | Archivo | Tamaño | Contenido |
 |---|---|---|
 | `censo-2022-largo.parquet` | 137 MB | Variables × radios censales × conteos |
-| `radios-2022.parquet` | 58 MB | Polígonos geográficos (WKB, EPSG:4326) |
 | `censo-2022-metadatos.parquet` | 1 MB | Catálogo de variables y categorías |
 
 **Cobertura:** Vivienda · Hogar · Persona — desagregación hasta radio censal.
@@ -121,7 +114,7 @@ id_geo     | codigo_variable | valor_categoria | etiqueta_categoria   | conteo |
 
 | Función | Descripción |
 |---|---|
-| `censo.query(variables, provincia, departamento, geometry)` | Datos en formato largo por radio censal |
+| `censo.query(variables, provincia, departamento)` | Datos en formato largo por radio censal |
 
 ---
 
@@ -164,10 +157,6 @@ censo.tabla("PERSONA_P02", provincia="02")
 # Datos crudos + agregación manual
 df = censo.query(variables="PERSONA_MNI", provincia="Santa Fe")
 censo.agregar(df, por="departamento")
-
-# Mapa de NBI en Buenos Aires
-gdf = censo.query(variables="HOGAR_NBI_TOT", provincia="Buenos Aires", geometry=True)
-gdf.plot(column="conteo", cmap="YlOrRd")
 ```
 
 ---
@@ -177,6 +166,5 @@ gdf.plot(column="conteo", cmap="YlOrRd")
 - [Dataset en Hugging Face](https://huggingface.co/datasets/pedroorden/censoargentino)
 - [Base REDATAM — INDEC](https://www.indec.gob.ar/indec/web/Institucional-Indec-BasesDeDatos-6)
 - [Definiciones de variables (PDF)](https://redatam.indec.gob.ar/redarg/CENSOS/CPV2022/Docs/Redatam_Definiciones_de_la_base_de_datos.pdf)
-- [Radios censales — CONICET](https://ri.conicet.gov.ar/handle/11336/149711)
 - [redatamx — herramienta de procesamiento](https://ideasybits.github.io/redatamx4r/index.html)
 - [Portal REDATAM online](https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP)
