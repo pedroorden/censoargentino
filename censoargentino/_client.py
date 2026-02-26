@@ -285,11 +285,13 @@ class CensoClient:
         where = "WHERE " + " AND ".join(conditions)
 
         result = self._conn().execute(
-            f"SELECT DISTINCT etiqueta_departamento, etiqueta_categoria "
+            f"SELECT DISTINCT etiqueta_departamento, valor_categoria "
             f"FROM '{DATA_URL}' {where}"
         ).df()
 
-        return dict(zip(result["etiqueta_departamento"], result["etiqueta_categoria"]))
+        # Normalizar a string con zero-padding de 3 dígitos para que coincida con el agg
+        keys = result["etiqueta_departamento"].astype(str).str.strip().str.zfill(3)
+        return dict(zip(keys, result["valor_categoria"]))
 
     def comparar(
         self,
@@ -343,7 +345,9 @@ class CensoClient:
         if nivel == "departamento":
             prov_code = resolve_provincia(provincia) if provincia else None
             labels = self._dept_labels(prov_code)
-            agg[geo_col] = agg[geo_col].map(lambda x: labels.get(x, x))
+            agg[geo_col] = agg[geo_col].map(
+                lambda x: labels.get(str(x).strip().zfill(3), x)
+            )
 
         # Pivot: geografia x categorias, valores = %
         pivot = agg.pivot_table(
