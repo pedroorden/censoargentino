@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "censoargentino"
-version = "0.1.3"
+version = "0.1.4"
 description = "Cliente Python para el censo argentino 2022 (INDEC)"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -32,6 +32,12 @@ geo = [
     "geopandas>=0.13",
     "pyarrow>=12",
 ]
+mcp = [
+    "mcp>=1.0.0",
+]
+
+[project.scripts]
+censoargentino-mcp = "censoargentino.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

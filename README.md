@@ -18,6 +18,31 @@ pip install censoargentino
 
 ---
 
+## Instalación con soporte MCP
+
+Para usar el paquete como servidor [MCP](MCP.md) (compatible con Claude Desktop, Cursor, Cline y otros):
+
+```bash
+pip install "censoargentino[mcp]"
+```
+
+Configuración en cualquier cliente MCP:
+
+```json
+{
+  "mcpServers": {
+    "censoargentino": {
+      "command": "python",
+      "args": ["-m", "censoargentino.mcp_server"]
+    }
+  }
+}
+```
+
+Ver [MCP.md](MCP.md) para documentación completa del servidor.
+
+---
+
 ## Uso rápido
 
 ```python
