@@ -14,9 +14,9 @@ _RADIOS_SIZE_MB = 58
 
 def _log(msg: str) -> None:
     import sys
-    enc = sys.stdout.encoding or "utf-8"
+    enc = sys.stderr.encoding or "utf-8"
     safe = msg.encode(enc, errors="replace").decode(enc)
-    print(f"[censo] {safe}", flush=True)
+    print(f"[censo] {safe}", flush=True, file=sys.stderr)
 
 
 class CensoClient:
