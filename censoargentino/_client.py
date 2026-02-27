@@ -31,7 +31,11 @@ class CensoClient:
 
             _log("Iniciando DuckDB e instalando extension HTTP...")
             self._con = duckdb.connect()
-            self._con.execute("INSTALL httpfs; LOAD httpfs; SET enable_progress_bar = false;")
+            self._con.execute("INSTALL httpfs; LOAD httpfs;")
+            try:
+                self._con.execute("SET enable_progress_bar = false;")
+            except Exception:
+                pass  # falla en Jupyter sin ipywidgets; no es crítico
             _log("Listo. Las consultas van directo a Hugging Face (pedroorden/censoargentino).")
         return self._con
 
