@@ -188,7 +188,7 @@ censo.agregar(df, por="departamento")
 
 ## Créditos
 
-Este proyecto toma como punto de partida el trabajo de [Nissim Lebovits](https://github.com/nlebovits) en [`ciut-redatam`](https://github.com/nlebovits/ciut-redatam), que tuvo la primera intención de hacer accesibles los datos del CPV 2022 desde Python.
+La extracción de los datos desde la base REDATAM del INDEC fue realizada con R por [Nissim Lebovits](https://github.com/nlebovits) en el proyecto [`ciut-redatam`](https://github.com/nlebovits/ciut-redatam), usando [`redatamx`](https://ideasybits.github.io/redatamx4r/index.html). `censoargentino` construye sobre esa base para ofrecer acceso desde Python.
 
 ---
 
