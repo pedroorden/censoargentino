@@ -14,6 +14,9 @@ build/
 examples/agente_censo_cerebras.ipynb
 examples/agente_censo_groq.ipynb
 
+# Newsletter y docs de divulgacion
+NEWSLETTER.md
+
 # Notebooks y docs removidos del repo
 ACERCA.md
 GUIA.md

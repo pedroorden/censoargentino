@@ -186,6 +186,12 @@ censo.agregar(df, por="departamento")
 
 ---
 
+## Créditos
+
+Este proyecto toma como punto de partida el trabajo de [Nissim Lebovits](https://github.com/nlebovits) en [`ciut-redatam`](https://github.com/nlebovits/ciut-redatam), que tuvo la primera intención de hacer accesibles los datos del CPV 2022 desde Python.
+
+---
+
 ## Fuentes y documentación
 
 - [Dataset en Hugging Face](https://huggingface.co/datasets/pedroorden/censoargentino)
