@@ -10,6 +10,21 @@ build/
 # Jupyter
 .ipynb_checkpoints/
 
+# Notebooks con posibles API keys
+examples/agente_censo_cerebras.ipynb
+examples/agente_censo_groq.ipynb
+
+# Notebooks y docs removidos del repo
+ACERCA.md
+GUIA.md
+POR_QUE.md
+Redatam_Definiciones_de_la_base_de_datos.pdf
+examples/prueba_funciones.ipynb
+examples/analisis_demografico.ipynb
+examples/ejemplos_censo_2022.ipynb
+examples/benchmark_mcp_vs_directo.ipynb
+examples/check_mcp.ipynb
+
 # Archivos de output generados por los ejemplos
 *.parquet
 *.csv
