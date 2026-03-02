@@ -57,6 +57,10 @@ censo.tabla("PERSONA_P02")
 # Filtrado por provincia
 censo.tabla("HOGAR_NBI_TOT", provincia="Chaco")
 
+# Filtrado por departamento — por nombre o código INDEC
+censo.tabla("HOGAR_NBI_TOT", provincia="Buenos Aires", departamento="Lanús")
+censo.tabla("HOGAR_NBI_TOT", provincia="Buenos Aires", departamento="490")  # equivalente
+
 # Comparación entre provincias
 censo.comparar("HOGAR_NBI_TOT")
 #               Con NBI  Sin NBI    Total
@@ -131,7 +135,7 @@ id_geo     | codigo_variable | valor_categoria | etiqueta_categoria   | conteo |
 
 | Función | Descripción |
 |---|---|
-| `censo.tabla(variable, provincia, departamento)` | Tabla con N y % en un paso |
+| `censo.tabla(variable, provincia, departamento)` | Tabla con N y % en un paso. `departamento` acepta nombre o código INDEC |
 | `censo.comparar(variable, nivel, provincia)` | Pivot geográfico (provincia o departamento) |
 | `censo.agregar(df, por)` | Agrega un DataFrame de `query()` con N y % |
 
@@ -139,7 +143,13 @@ id_geo     | codigo_variable | valor_categoria | etiqueta_categoria   | conteo |
 
 | Función | Descripción |
 |---|---|
-| `censo.query(variables, provincia, departamento)` | Datos en formato largo por radio censal |
+| `censo.query(variables, provincia, departamento)` | Datos en formato largo por radio censal. `departamento` acepta nombre o código INDEC |
+
+### Configuración
+
+| Variable de entorno | Descripción |
+|---|---|
+| `CENSO_VERBOSE=0` | Silencia los mensajes de progreso (útil en pipelines y scripts) |
 
 ---
 
@@ -178,6 +188,9 @@ censo.comparar("PERSONA_MNI", nivel="departamento", provincia="Tucumán")
 
 # Distribución de sexo en CABA
 censo.tabla("PERSONA_P02", provincia="02")
+
+# Departamento por nombre
+censo.tabla("VIVIENDA_TIPOVIVG", provincia="Buenos Aires", departamento="Lanús")
 
 # Datos crudos + agregación manual
 df = censo.query(variables="PERSONA_MNI", provincia="Santa Fe")
