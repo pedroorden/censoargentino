@@ -205,7 +205,15 @@ class CensoClient:
 
         dpto_code: str | None = None
         if departamento is not None:
-            dpto_code = str(departamento).zfill(3)
+            dpto_str = str(departamento).strip()
+            if dpto_str.isdigit():
+                dpto_code = dpto_str.zfill(3)
+            else:
+                if prov_code is None:
+                    raise ValueError(
+                        "Para filtrar por nombre de departamento, especificá también la provincia."
+                    )
+                dpto_code = self._resolve_departamento(dpto_str, prov_code)
 
         # --- Mostrar resumen de la consulta ---
         _log("=" * 55)
@@ -303,6 +311,7 @@ class CensoClient:
         if prov_code in self._dept_labels_cache:
             return self._dept_labels_cache[prov_code]
 
+
         conditions = ["codigo_variable = 'DPTO_NDPTO'"]
         if prov_code:
             conditions.append(f"valor_provincia = '{prov_code}'")
@@ -318,6 +327,28 @@ class CensoClient:
         labels = dict(zip(keys, result["valor_categoria"]))
         self._dept_labels_cache[prov_code] = labels
         return labels
+
+    def _resolve_departamento(self, departamento: str, prov_code: str) -> str:
+        """Resuelve nombre de departamento a código INDEC de 3 dígitos."""
+        labels = self._dept_labels(prov_code)  # {code: nombre}
+        name_to_code = {v.lower(): k for k, v in labels.items()}
+
+        key = departamento.strip().lower()
+        if key in name_to_code:
+            return name_to_code[key]
+
+        matches = [(name, code) for name, code in name_to_code.items() if key in name]
+        if len(matches) == 1:
+            return matches[0][1]
+        if len(matches) > 1:
+            names = ", ".join(n.title() for n, _ in matches)
+            raise ValueError(
+                f"Departamento '{departamento}' es ambiguo. ¿Quisiste decir alguno de: {names}?"
+            )
+        raise ValueError(
+            f"Departamento '{departamento}' no encontrado. "
+            f"Usá censo.comparar(..., nivel='departamento', provincia=...) para ver los disponibles."
+        )
 
     def comparar(
         self,
