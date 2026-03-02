@@ -33,6 +33,7 @@ except ImportError as exc:
     ) from exc
 
 import json
+import re
 from typing import Optional
 
 import pandas as pd
@@ -136,6 +137,12 @@ def describir_variable(codigo_variable: str) -> str:
     Args:
         codigo_variable: Código de la variable. Ej: 'PERSONA_P02', 'HOGAR_NBI_TOT'.
     """
+    codigo_variable = codigo_variable.strip().upper()
+    if not re.match(r"^[A-Z0-9_]+$", codigo_variable):
+        return (
+            f"Error: código de variable inválido '{codigo_variable}'. "
+            f"Los códigos tienen el formato 'ENTIDAD_NOMBRE', ej. 'PERSONA_P02'."
+        )
     con = _client._conn()
     df = con.execute(
         f"""

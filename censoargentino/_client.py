@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import re
 import time
 
 import pandas as pd
@@ -13,6 +15,8 @@ _RADIOS_SIZE_MB = 58
 
 
 def _log(msg: str) -> None:
+    if os.environ.get("CENSO_VERBOSE", "1") == "0":
+        return
     import sys
     enc = sys.stderr.encoding or "utf-8"
     safe = msg.encode(enc, errors="replace").decode(enc)
@@ -24,6 +28,8 @@ class CensoClient:
         self._con = None
         self._metadata_cache: pd.DataFrame | None = None
         self._variable_labels_cache: dict[str, str] = {}
+        self._dept_labels_cache: dict = {}
+        self._provincias_cache: pd.DataFrame | None = None
 
     def _conn(self):
         if self._con is None:
@@ -98,6 +104,12 @@ class CensoClient:
         variable : str
             Codigo de la variable, ej. "PERSONA_P02".
         """
+        variable = variable.strip().upper()
+        if not re.match(r"^[A-Z0-9_]+$", variable):
+            raise ValueError(
+                f"Código de variable inválido: '{variable}'. "
+                f"Los códigos tienen el formato 'ENTIDAD_NOMBRE', ej. 'PERSONA_P02'."
+            )
         _log(f"Consultando metadatos de '{variable}'...")
         df = self._conn().execute(
             f"""
@@ -139,12 +151,14 @@ class CensoClient:
 
     def provincias(self) -> pd.DataFrame:
         """Devuelve la tabla de provincias con nombre y codigo INDEC."""
-        seen: dict[str, str] = {}
-        for nombre, codigo in PROVINCIAS.items():
-            if codigo not in seen:
-                seen[codigo] = nombre.title()
-        rows = sorted(seen.items(), key=lambda x: x[0])
-        return pd.DataFrame(rows, columns=["codigo", "provincia"])
+        if self._provincias_cache is None:
+            seen: dict[str, str] = {}
+            for nombre, codigo in PROVINCIAS.items():
+                if codigo not in seen:
+                    seen[codigo] = nombre.title()
+            rows = sorted(seen.items(), key=lambda x: x[0])
+            self._provincias_cache = pd.DataFrame(rows, columns=["codigo", "provincia"])
+        return self._provincias_cache
 
     def query(
         self,
@@ -286,6 +300,9 @@ class CensoClient:
         Devuelve un diccionario {etiqueta_departamento_codigo: nombre_real}
         consultando la variable DPTO_NDPTO del propio dataset.
         """
+        if prov_code in self._dept_labels_cache:
+            return self._dept_labels_cache[prov_code]
+
         conditions = ["codigo_variable = 'DPTO_NDPTO'"]
         if prov_code:
             conditions.append(f"valor_provincia = '{prov_code}'")
@@ -298,7 +315,9 @@ class CensoClient:
 
         # Normalizar a string con zero-padding de 3 dígitos para que coincida con el agg
         keys = result["etiqueta_departamento"].astype(str).str.strip().str.zfill(3)
-        return dict(zip(keys, result["valor_categoria"]))
+        labels = dict(zip(keys, result["valor_categoria"]))
+        self._dept_labels_cache[prov_code] = labels
+        return labels
 
     def comparar(
         self,
