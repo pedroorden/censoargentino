@@ -96,6 +96,20 @@ def resource_variables() -> str:
     return _to_json(censo.variables())
 
 
+@mcp.tool()
+def departamentos(provincia: str) -> str:
+    """
+    Devuelve la lista de departamentos de una provincia con código INDEC y nombre.
+
+    Usá esta tool para descubrir los nombres exactos de departamentos antes de
+    llamar a tabla() o consultar() con el parámetro 'departamento'.
+
+    Args:
+        provincia: Nombre o código INDEC de la provincia. Ej: 'Buenos Aires', '06'.
+    """
+    return _to_json(censo.departamentos(provincia))
+
+
 # ──────────────────────────────────────────────────────────────────
 # Tools
 # ──────────────────────────────────────────────────────────────────

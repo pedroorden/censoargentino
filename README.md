@@ -130,6 +130,7 @@ id_geo     | codigo_variable | valor_categoria | etiqueta_categoria   | conteo |
 | `censo.variables(buscar="texto")` | Busca por palabra clave en código o descripción |
 | `censo.describe("VARIABLE")` | Muestra qué mide una variable y sus categorías |
 | `censo.provincias()` | Tabla de provincias con códigos INDEC |
+| `censo.departamentos("provincia")` | Tabla de departamentos de una provincia con códigos INDEC |
 
 ### Análisis
 

@@ -160,6 +160,24 @@ class CensoClient:
             self._provincias_cache = pd.DataFrame(rows, columns=["codigo", "provincia"])
         return self._provincias_cache
 
+    def departamentos(self, provincia: str) -> pd.DataFrame:
+        """
+        Devuelve la tabla de departamentos de una provincia con nombre y codigo INDEC.
+
+        Parameters
+        ----------
+        provincia : str
+            Nombre o codigo INDEC de la provincia. Ej: 'Buenos Aires', '06'.
+
+        Returns
+        -------
+        pandas.DataFrame con columnas: codigo, departamento
+        """
+        prov_code = resolve_provincia(provincia)
+        labels = self._dept_labels(prov_code)  # {code: nombre}
+        rows = sorted(labels.items(), key=lambda x: x[1])
+        return pd.DataFrame(rows, columns=["codigo", "departamento"])
+
     def query(
         self,
         variables: str | list[str] | None = None,

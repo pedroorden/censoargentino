@@ -91,6 +91,27 @@ def provincias() -> pd.DataFrame:
     return _client.provincias()
 
 
+def departamentos(provincia: str) -> pd.DataFrame:
+    """
+    Devuelve la tabla de departamentos de una provincia con codigo INDEC y nombre.
+
+    Parameters
+    ----------
+    provincia : str
+        Nombre o codigo INDEC de la provincia. Ej: 'Buenos Aires', '06'.
+
+    Returns
+    -------
+    pandas.DataFrame con columnas: codigo, departamento
+
+    Ejemplos
+    --------
+    >>> censo.departamentos("Buenos Aires")
+    >>> censo.departamentos("Chaco")
+    """
+    return _client.departamentos(provincia)
+
+
 def query(
     variables=None,
     provincia: str | None = None,
@@ -193,4 +214,4 @@ def comparar(
     return _client.comparar(variable, nivel=nivel, provincia=provincia)
 
 
-__all__ = ["query", "variables", "describe", "provincias", "tabla", "comparar", "agregar"]
+__all__ = ["query", "variables", "describe", "provincias", "departamentos", "tabla", "comparar", "agregar"]
