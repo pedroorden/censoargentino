@@ -18,31 +18,6 @@ pip install censoargentino
 
 ---
 
-## Instalación con soporte MCP
-
-Para usar el paquete como servidor [MCP](MCP.md) (compatible con Claude Desktop, Cursor, Cline y otros):
-
-```bash
-pip install "censoargentino[mcp]"
-```
-
-Configuración en cualquier cliente MCP:
-
-```json
-{
-  "mcpServers": {
-    "censoargentino": {
-      "command": "python",
-      "args": ["-m", "censoargentino.mcp_server"]
-    }
-  }
-}
-```
-
-Ver [MCP.md](MCP.md) para documentación completa del servidor.
-
----
-
 ## Uso rápido
 
 ```python
@@ -196,6 +171,45 @@ censo.tabla("VIVIENDA_TIPOVIVG", provincia="Buenos Aires", departamento="Lanús"
 # Datos crudos + agregación manual
 df = censo.query(variables="PERSONA_MNI", provincia="Santa Fe")
 censo.agregar(df, por="departamento")
+```
+
+---
+
+## Instalación con soporte MCP
+
+Para usar el paquete como servidor [MCP](MCP.md) (compatible con Claude Desktop, Cursor, Cline y otros):
+
+```bash
+pip install "censoargentino[mcp]"
+```
+
+Configuración en cualquier cliente MCP:
+
+```json
+{
+  "mcpServers": {
+    "censoargentino": {
+      "command": "python",
+      "args": ["-m", "censoargentino.mcp_server"]
+    }
+  }
+}
+```
+
+Ver [MCP.md](MCP.md) para documentación completa del servidor.
+
+---
+
+## Instalación con soporte geográfico
+
+Para trabajar con geometrías de radios censales (requiere geopandas):
+
+```bash
+pip install "censoargentino[geo]"
+```
+
+```python
+gdf = censo.query(variables="HOGAR_NBI_TOT", provincia="Tucumán", geometry=True)
 ```
 
 ---
