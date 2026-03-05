@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import re
 import time
+import unicodedata
 
 import pandas as pd
 
@@ -346,16 +347,26 @@ class CensoClient:
         self._dept_labels_cache[prov_code] = labels
         return labels
 
+    @staticmethod
+    def _ascii(s: str) -> str:
+        """Normaliza a minúsculas sin tildes para comparaciones flexibles."""
+        return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode("ascii").lower()
+
     def _resolve_departamento(self, departamento: str, prov_code: str) -> str:
         """Resuelve nombre de departamento a código INDEC de 3 dígitos."""
         labels = self._dept_labels(prov_code)  # {code: nombre}
         name_to_code = {v.lower(): k for k, v in labels.items()}
+        name_to_code_ascii = {self._ascii(v): k for k, v in labels.items()}
 
         key = departamento.strip().lower()
+        key_ascii = self._ascii(departamento.strip())
+
         if key in name_to_code:
             return name_to_code[key]
+        if key_ascii in name_to_code_ascii:
+            return name_to_code_ascii[key_ascii]
 
-        matches = [(name, code) for name, code in name_to_code.items() if key in name]
+        matches = [(name, code) for name, code in name_to_code.items() if key in name or key_ascii in self._ascii(name)]
         if len(matches) == 1:
             return matches[0][1]
         if len(matches) > 1:
