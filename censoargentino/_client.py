@@ -38,7 +38,17 @@ class CensoClient:
 
             _log("Iniciando DuckDB e instalando extension HTTP...")
             self._con = duckdb.connect()
-            self._con.execute("INSTALL httpfs; LOAD httpfs;")
+            
+            # self._con.execute("INSTALL httpfs; LOAD httpfs;")
+
+            self._con.execute("""
+                INSTALL httpfs;
+                LOAD httpfs;
+
+                INSTALL spatial;
+                LOAD spatial;
+            """)
+            
             try:
                 self._con.execute("SET enable_progress_bar = false;")
             except Exception:
@@ -471,17 +481,36 @@ class CensoClient:
 
         _log(f"Descargando poligonos de radios censales (~{_RADIOS_SIZE_MB} MB total)...")
         t0 = time.time()
+        
+#        radios = self._conn().execute(
+#            f"SELECT cod_2022, geometry FROM '{RADIOS_URL}' {radios_where}"
+#        ).df()
+
         radios = self._conn().execute(
-            f"SELECT cod_2022, geometry FROM '{RADIOS_URL}' {radios_where}"
+            f"""
+            SELECT
+                cod_2022,
+                ST_AsText(geometry) AS geometry
+            FROM '{RADIOS_URL}'
+            {radios_where}
+            """
         ).df()
+
+        radios = gpd.GeoDataFrame(
+            radios,
+            geometry=gpd.GeoSeries.from_wkt(radios["geometry"])
+        )
+
         elapsed = time.time() - t0
         _log(f"Radios descargados en {elapsed:.1f}s -> {len(radios):,} radios censales")
 
         _log("Uniendo datos censales con geometrias...")
-        merged = df.merge(radios, left_on="id_geo", right_on="cod_2022", how="left")
+#        merged = df.merge(radios, left_on="id_geo", right_on="cod_2022", how="left")
+        merged = df.merge(radios, left_on="id_geo", right_on="COD_2022", how="left")
         matched = merged["geometry"].notna().sum()
-        merged["geometry"] = gpd.GeoSeries.from_wkb(merged["geometry"])
-        gdf = gpd.GeoDataFrame(merged, geometry="geometry", crs="EPSG:4326")
+#        merged["geometry"] = gpd.GeoSeries.from_wkb(merged["geometry"])
+        #gdf = gpd.GeoDataFrame(merged, geometry="geometry", crs="EPSG:4326")
+        gdf = gpd.GeoDataFrame(merged, geometry="geometry")
 
         _log(f"GeoDataFrame listo -> {matched:,}/{len(merged):,} filas con geometria")
         return gdf
